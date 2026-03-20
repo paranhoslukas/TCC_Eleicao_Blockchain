@@ -1,0 +1,21 @@
+{
+  "name": "tcc-eleicao-blockchain",
+  "version": "1.0.0",
+  "description": "Prototipo de votacao eletronica auditavel com Node.js, blockchain permissiva simulada e Docker.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "blockchain",
+    "votacao",
+    "nodejs",
+    "docker",
+    "goquorum"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

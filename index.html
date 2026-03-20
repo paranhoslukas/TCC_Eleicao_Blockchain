@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Votacao Descentralizado</title>
+<link rel="stylesheet" href="./styles/main_styles.css">
+<script src="./app.js" defer></script>
+
+</head>
+
+<body>
+
+<header class="hero">
+<nav class="barra-navegacao">
+<a href="#votacao">Votacao</a>
+<a href="#resultados">Resultados</a>
+<a href="#rede">Rede</a>
+<a href="#auditoria">Auditoria</a>
+</nav>
+
+<div class="hero__conteudo">
+<p class="selo">TCC | Blockchain Permissiva | GoQuorum como referencia</p>
+<h1>Votacao eletronica auditavel com trilha imutavel de blocos</h1>
+<p class="hero__descricao">
+Prototipo web em JavaScript e Node.js para demonstrar emissao de credenciais, registro de votos,
+status de rede e auditoria publica de blocos em um contexto de rede permissiva.
+</p>
+</div>
+</header>
+
+<main class="container">
+<section class="painel painel--credencial">
+<div>
+<p class="etiqueta">Autorizacao de voto</p>
+<h2>Credencial anonima de teste</h2>
+<p>Gere uma credencial temporaria antes de registrar um voto. O backend armazena apenas o hash da credencial.</p>
+</div>
+<div class="bloco-credencial">
+<button onclick="gerarCredencial()">Gerar credencial</button>
+<p><strong>Credencial atual:</strong> <span id="credencialAtual">Nenhuma</span></p>
+<p id="statusCredencial">Nenhuma credencial emitida nesta sessao.</p>
+</div>
+</section>
+
+<section id="votacao" class="painel">
+<div class="cabecalho-secao">
+<p class="etiqueta">Urna ativa</p>
+<h2>Registro do voto</h2>
+<p>Selecione um candidato. Cada credencial pode ser usada apenas uma vez.</p>
+<p id="statusVotacao">Aguardando emissao de credencial.</p>
+</div>
+
+<div class="candidatos">
+<article class="cartao">
+<h3>Candidato A</h3>
+<p>Perfil institucional com enfase em governanca distribuida.</p>
+<button onclick="votar('Candidato_A')">Votar no Candidato A</button>
+</article>
+
+<article class="cartao">
+<h3>Candidato B</h3>
+<p>Perfil institucional com enfase em auditabilidade e desempenho.</p>
+<button onclick="votar('Candidato_B')">Votar no Candidato B</button>
+</article>
+</div>
+</section>
+
+<section id="resultados" class="painel painel--duplo">
+<div>
+<p class="etiqueta">Apuracao</p>
+<h2>Resultados parciais</h2>
+<p>Total de votos confirmados: <strong id="totalVotos">0</strong></p>
+
+<p>Candidato A: <strong id="quantidadeA">0</strong></p>
+<div class="progresso">
+<div id="barraA" class="barra"></div>
+</div>
+
+<p>Candidato B: <strong id="quantidadeB">0</strong></p>
+<div class="progresso">
+<div id="barraB" class="barra barra--secundaria"></div>
+</div>
+</div>
+
+<div id="rede">
+<p class="etiqueta">Telemetria</p>
+<h2>Status da rede</h2>
+<div class="grade-status">
+<div class="cartao-status">
+<span>Nos conhecidos</span>
+<strong id="nosRede">0</strong>
+</div>
+<div class="cartao-status">
+<span>Consenso</span>
+<strong id="consensoRede">-</strong>
+</div>
+<div class="cartao-status">
+<span>Altura da blockchain</span>
+<strong id="blocoAtual">0</strong>
+</div>
+<div class="cartao-status">
+<span>Transacoes confirmadas</span>
+<strong id="transacoesConfirmadas">0</strong>
+</div>
+</div>
+</div>
+</section>
+
+<section id="auditoria" class="painel">
+<p class="etiqueta">Auditoria publica</p>
+<h2>Blocos registrados</h2>
+<p>Cada voto confirmado gera um novo bloco com hash atual e referencia ao hash anterior.</p>
+<ul id="listaAuditoria" class="lista-auditoria"></ul>
+</section>
+</main>
+
+
+
+</body>
+</html>

@@ -1,0 +1,17 @@
+Título: Investigação de Arquiteturas Descentralizadas para Votação Eletrônica Auditável utilizando Redes Blockchain Permissivas e Contratos Inteligentes.
+
+Área: Sistemas Distribuídos, Criptografia e Segurança da Informação.
+
+Objetivo: Propor e avaliar o desenvolvimento de uma arquitetura distribuída para sistemas de votação eletrônica fundamentada em tecnologia Distributed Ledger (DLT) privada. O trabalho justifica-se pela necessidade crítica de mitigar pontos únicos de falha e vulnerabilidades de confiança inerentes a bancos de dados centralizados. Por meio da implementação de contratos inteligentes (smart contracts) e infraestrutura conteinerizada, o estudo visa validar a garantia de imutabilidade, o anonimato criptográfico e a auditabilidade pública dos escrutínios, analisando métricas de latência, vazão (throughput) e segurança em contextos institucionais.
+
+Fundamentação:
+
+Tecnologia de Livro-Razão Distribuído (DLT) e Blockchains Permissivas: Estudo rigoroso sobre as diferenças arquitetônicas entre blockchains públicas (como Bitcoin/Ethereum) e redes privadas/consórcios (como Hyperledger Fabric ou GoQuorum). O foco deve ser nos algoritmos de consenso voltados para nós conhecidos (ex: RAFT, IBFT ou PBFT), que não exigem o gasto energético do Proof-of-Work.
+
+Criptografia Aplicada e Preservação de Privacidade: A espinha dorsal do anonimato. Fundamentação sobre funções de Hash (ex: SHA-256), Criptografia Assimétrica (chaves públicas/privadas) e, fundamentalmente, técnicas para desvincular o eleitor de seu voto, como Assinaturas Cegas (Blind Signatures) ou Provas de Conhecimento Zero (Zero-Knowledge Proofs - ZKPs).
+
+Contratos Inteligentes (Smart Contracts) e Máquinas de Estado: Exploração teórica sobre a execução de código autônomo e determinístico na rede. Como as regras de negócio (validação do eleitor, cômputo do voto e encerramento da urna) são traduzidas para transações de mudança de estado imutáveis.
+
+Orquestração de Contêineres e Análise de Desempenho em Redes P2P: Estudo sobre o empacotamento dos nós da rede blockchain utilizando Docker/Kubernetes. A teoria deve embasar a metodologia de testes de carga, definindo como medir Transações Por Segundo (TPS), latência de confirmação do bloco e o uso de recursos computacionais durante o estresse do sistema.
+
+vamos utilizar java script node.js e docker

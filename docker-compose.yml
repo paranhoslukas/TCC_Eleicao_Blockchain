@@ -1,0 +1,324 @@
+version: "3.8"
+
+# =============================================================================
+# TCC - Votacao Eletronica Auditavel com GoQuorum + IBFT2
+# =============================================================================
+# Topologia da rede:
+#   bootnode      - no de descoberta P2P (nao valida blocos)
+#   validator-1/4 - 4 validadores IBFT (tolerancia: 1 no falho/malicioso)
+#   rpc-node      - no de acesso para o backend Node.js
+#   backend       - API Node.js que interage com o contrato via ethers.js
+# =============================================================================
+
+networks:
+  rede-votacao:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+volumes:
+  dados-validator-1:
+  dados-validator-2:
+  dados-validator-3:
+  dados-validator-4:
+  dados-rpc:
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # BOOTNODE
+  # Responsavel apenas pela descoberta de pares (peer discovery).
+  # Nao participa do consenso IBFT nem armazena blocos.
+  # ---------------------------------------------------------------------------
+  bootnode:
+    image: quorumengineering/quorum:23.4.0
+    container_name: tcc-bootnode
+    networks:
+      rede-votacao:
+        ipv4_address: 172.20.0.10
+    volumes:
+      - ./bootnode:/data
+    entrypoint:
+      - bootnode
+      - --nodekey=/data/nodekey
+      - --addr=0.0.0.0:30301
+      - --verbosity=3
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "30301"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # VALIDADORES IBFT (1 a 4)
+  # Cada validador participa do protocolo de consenso Istanbul BFT.
+  # Com 4 validadores: tolera f=1 no malicioso (formula: n >= 3f+1 -> 4 >= 4).
+  # blockperiodseconds=2 define o intervalo entre blocos.
+  # ---------------------------------------------------------------------------
+  validator-1:
+    image: quorumengineering/quorum:23.4.0
+    container_name: tcc-validator-1
+    depends_on:
+      bootnode:
+        condition: service_healthy
+    networks:
+      rede-votacao:
+        ipv4_address: 172.20.0.11
+    volumes:
+      - dados-validator-1:/data
+      - ./validators/1:/keys
+      - ./config:/config
+    entrypoint:
+      - sh
+      - -c
+      - |
+        if [ ! -d /data/geth ]; then
+          cp /config/static-nodes.json /data/static-nodes.json
+          cp /keys/nodekey /data/nodekey
+          geth --datadir /data init /config/genesis.json
+        fi
+        exec geth \
+          --datadir /data \
+          --networkid 1337 \
+          --nodiscover \
+          --bootnodes "enode://$(cat /keys/nodekey.pub | tr -d '\n')@bootnode:30301" \
+          --port 30303 \
+          --http \
+          --http.addr 0.0.0.0 \
+          --http.port 8545 \
+          --http.api eth,net,web3,istanbul,txpool \
+          --http.corsdomain "*" \
+          --ws \
+          --ws.addr 0.0.0.0 \
+          --ws.port 8546 \
+          --ws.api eth,net,web3,istanbul \
+          --mine \
+          --miner.threads 1 \
+          --syncmode full \
+          --istanbul.blockperiodseconds 2 \
+          --istanbul.requesttimeoutseconds 4 \
+          --verbosity 3 \
+          --unlock $(cat /keys/address) \
+          --password /dev/null \
+          --allow-insecure-unlock
+    restart: unless-stopped
+
+  validator-2:
+    image: quorumengineering/quorum:23.4.0
+    container_name: tcc-validator-2
+    depends_on:
+      bootnode:
+        condition: service_healthy
+    networks:
+      rede-votacao:
+        ipv4_address: 172.20.0.12
+    volumes:
+      - dados-validator-2:/data
+      - ./validators/2:/keys
+      - ./config:/config
+    entrypoint:
+      - sh
+      - -c
+      - |
+        if [ ! -d /data/geth ]; then
+          cp /config/static-nodes.json /data/static-nodes.json
+          cp /keys/nodekey /data/nodekey
+          geth --datadir /data init /config/genesis.json
+        fi
+        exec geth \
+          --datadir /data \
+          --networkid 1337 \
+          --nodiscover \
+          --bootnodes "enode://$(cat /keys/nodekey.pub | tr -d '\n')@bootnode:30301" \
+          --port 30303 \
+          --http \
+          --http.addr 0.0.0.0 \
+          --http.port 8545 \
+          --http.api eth,net,web3,istanbul,txpool \
+          --http.corsdomain "*" \
+          --mine \
+          --miner.threads 1 \
+          --syncmode full \
+          --istanbul.blockperiodseconds 2 \
+          --istanbul.requesttimeoutseconds 4 \
+          --verbosity 3 \
+          --unlock $(cat /keys/address) \
+          --password /dev/null \
+          --allow-insecure-unlock
+    restart: unless-stopped
+
+  validator-3:
+    image: quorumengineering/quorum:23.4.0
+    container_name: tcc-validator-3
+    depends_on:
+      bootnode:
+        condition: service_healthy
+    networks:
+      rede-votacao:
+        ipv4_address: 172.20.0.13
+    volumes:
+      - dados-validator-3:/data
+      - ./validators/3:/keys
+      - ./config:/config
+    entrypoint:
+      - sh
+      - -c
+      - |
+        if [ ! -d /data/geth ]; then
+          cp /config/static-nodes.json /data/static-nodes.json
+          cp /keys/nodekey /data/nodekey
+          geth --datadir /data init /config/genesis.json
+        fi
+        exec geth \
+          --datadir /data \
+          --networkid 1337 \
+          --nodiscover \
+          --bootnodes "enode://$(cat /keys/nodekey.pub | tr -d '\n')@bootnode:30301" \
+          --port 30303 \
+          --http \
+          --http.addr 0.0.0.0 \
+          --http.port 8545 \
+          --http.api eth,net,web3,istanbul,txpool \
+          --http.corsdomain "*" \
+          --mine \
+          --miner.threads 1 \
+          --syncmode full \
+          --istanbul.blockperiodseconds 2 \
+          --istanbul.requesttimeoutseconds 4 \
+          --verbosity 3 \
+          --unlock $(cat /keys/address) \
+          --password /dev/null \
+          --allow-insecure-unlock
+    restart: unless-stopped
+
+  validator-4:
+    image: quorumengineering/quorum:23.4.0
+    container_name: tcc-validator-4
+    depends_on:
+      bootnode:
+        condition: service_healthy
+    networks:
+      rede-votacao:
+        ipv4_address: 172.20.0.14
+    volumes:
+      - dados-validator-4:/data
+      - ./validators/4:/keys
+      - ./config:/config
+    entrypoint:
+      - sh
+      - -c
+      - |
+        if [ ! -d /data/geth ]; then
+          cp /config/static-nodes.json /data/static-nodes.json
+          cp /keys/nodekey /data/nodekey
+          geth --datadir /data init /config/genesis.json
+        fi
+        exec geth \
+          --datadir /data \
+          --networkid 1337 \
+          --nodiscover \
+          --bootnodes "enode://$(cat /keys/nodekey.pub | tr -d '\n')@bootnode:30301" \
+          --port 30303 \
+          --http \
+          --http.addr 0.0.0.0 \
+          --http.port 8545 \
+          --http.api eth,net,web3,istanbul,txpool \
+          --http.corsdomain "*" \
+          --mine \
+          --miner.threads 1 \
+          --syncmode full \
+          --istanbul.blockperiodseconds 2 \
+          --istanbul.requesttimeoutseconds 4 \
+          --verbosity 3 \
+          --unlock $(cat /keys/address) \
+          --password /dev/null \
+          --allow-insecure-unlock
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # NO RPC
+  # Ponto de entrada para o backend Node.js.
+  # Nao valida blocos, apenas sincroniza e expoe a API JSON-RPC na porta 8545.
+  # O backend se conecta SOMENTE a este no, nunca diretamente aos validadores.
+  # ---------------------------------------------------------------------------
+  rpc-node:
+    image: quorumengineering/quorum:23.4.0
+    container_name: tcc-rpc-node
+    depends_on:
+      - validator-1
+      - validator-2
+      - validator-3
+      - validator-4
+    networks:
+      rede-votacao:
+        ipv4_address: 172.20.0.20
+    ports:
+      - "8545:8545"
+      - "8546:8546"
+    volumes:
+      - dados-rpc:/data
+      - ./rpc-node:/keys
+      - ./config:/config
+    entrypoint:
+      - sh
+      - -c
+      - |
+        if [ ! -d /data/geth ]; then
+          cp /config/static-nodes.json /data/static-nodes.json
+          cp /keys/nodekey /data/nodekey
+          geth --datadir /data init /config/genesis.json
+        fi
+        exec geth \
+          --datadir /data \
+          --networkid 1337 \
+          --nodiscover \
+          --bootnodes "enode://$(cat /keys/nodekey.pub | tr -d '\n')@bootnode:30301" \
+          --port 30303 \
+          --http \
+          --http.addr 0.0.0.0 \
+          --http.port 8545 \
+          --http.api eth,net,web3,istanbul,txpool,personal \
+          --http.corsdomain "*" \
+          --ws \
+          --ws.addr 0.0.0.0 \
+          --ws.port 8546 \
+          --ws.api eth,net,web3 \
+          --ws.origins "*" \
+          --syncmode full \
+          --verbosity 3
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # BACKEND NODE.JS
+  # API que integra frontend com a rede GoQuorum via ethers.js.
+  # Aguarda o rpc-node estar saudavel antes de iniciar.
+  # Variavel RPC_URL aponta para o no RPC interno da rede Docker.
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tcc-backend
+    depends_on:
+      rpc-node:
+        condition: service_healthy
+    networks:
+      rede-votacao:
+        ipv4_address: 172.20.0.30
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - RPC_URL=http://rpc-node:8545
+      - CHAIN_ID=1337
+      - NODE_ENV=development
+    volumes:
+      - ./config:/app/config:ro
+    restart: unless-stopped

@@ -48,6 +48,8 @@ services:
         if [ ! -d /data/geth ]; then
           cp /config/static-nodes.json /data/static-nodes.json
           cp /keys/nodekey /data/nodekey
+          mkdir -p /data/keystore
+          cp /keys/keystore/* /data/keystore/
           geth --datadir /data init /config/genesis.json
         fi
         exec geth \
@@ -60,8 +62,6 @@ services:
           --http.corsdomain "*" \
           --mine --miner.threads 1 \
           --syncmode full \
-          --istanbul.blockperiod 2 \
-          --istanbul.requesttimeout 4000 \
           --verbosity 3 \
           --unlock $(cat /keys/address) \
           --password /dev/null \
@@ -87,6 +87,8 @@ services:
         if [ ! -d /data/geth ]; then
           cp /config/static-nodes.json /data/static-nodes.json
           cp /keys/nodekey /data/nodekey
+          mkdir -p /data/keystore
+          cp /keys/keystore/* /data/keystore/
           geth --datadir /data init /config/genesis.json
         fi
         exec geth \
@@ -99,8 +101,6 @@ services:
           --http.corsdomain "*" \
           --mine --miner.threads 1 \
           --syncmode full \
-          --istanbul.blockperiod 2 \
-          --istanbul.requesttimeout 4000 \
           --verbosity 3 \
           --unlock $(cat /keys/address) \
           --password /dev/null \
@@ -126,6 +126,8 @@ services:
         if [ ! -d /data/geth ]; then
           cp /config/static-nodes.json /data/static-nodes.json
           cp /keys/nodekey /data/nodekey
+          mkdir -p /data/keystore
+          cp /keys/keystore/* /data/keystore/
           geth --datadir /data init /config/genesis.json
         fi
         exec geth \
@@ -138,8 +140,6 @@ services:
           --http.corsdomain "*" \
           --mine --miner.threads 1 \
           --syncmode full \
-          --istanbul.blockperiod 2 \
-          --istanbul.requesttimeout 4000 \
           --verbosity 3 \
           --unlock $(cat /keys/address) \
           --password /dev/null \
@@ -165,6 +165,8 @@ services:
         if [ ! -d /data/geth ]; then
           cp /config/static-nodes.json /data/static-nodes.json
           cp /keys/nodekey /data/nodekey
+          mkdir -p /data/keystore
+          cp /keys/keystore/* /data/keystore/
           geth --datadir /data init /config/genesis.json
         fi
         exec geth \
@@ -177,8 +179,6 @@ services:
           --http.corsdomain "*" \
           --mine --miner.threads 1 \
           --syncmode full \
-          --istanbul.blockperiod 2 \
-          --istanbul.requesttimeout 4000 \
           --verbosity 3 \
           --unlock $(cat /keys/address) \
           --password /dev/null \
@@ -210,6 +210,8 @@ services:
         if [ ! -d /data/geth ]; then
           cp /config/static-nodes.json /data/static-nodes.json
           cp /keys/nodekey /data/nodekey
+          mkdir -p /data/keystore
+          cp /keys/keystore/* /data/keystore/
           geth --datadir /data init /config/genesis.json
         fi
         exec geth \

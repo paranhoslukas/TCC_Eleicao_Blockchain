@@ -16,3 +16,7 @@ rpc-node/nodekey
 # Chaves SSH
 *.key
 *.pub
+.env
+keystore-admin.json
+.env
+keystore-admin.json

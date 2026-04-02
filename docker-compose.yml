@@ -61,9 +61,10 @@ services:
           --http.api eth,net,web3,istanbul,txpool \
           --http.corsdomain "*" \
           --mine --miner.threads 1 \
+          --miner.etherbase 0xcb428208FB91bE659B983F5f952a9a6BF144B816 \
           --syncmode full \
           --verbosity 3 \
-          --unlock $(cat /keys/address) \
+          --unlock 0xcb428208FB91bE659B983F5f952a9a6BF144B816 \
           --password /dev/null \
           --allow-insecure-unlock
     restart: unless-stopped
@@ -100,9 +101,10 @@ services:
           --http.api eth,net,web3,istanbul,txpool \
           --http.corsdomain "*" \
           --mine --miner.threads 1 \
+          --miner.etherbase 0x518Bb70c859d9379180AA17A09678a85e5a1bc81 \
           --syncmode full \
           --verbosity 3 \
-          --unlock $(cat /keys/address) \
+          --unlock 0x518Bb70c859d9379180AA17A09678a85e5a1bc81 \
           --password /dev/null \
           --allow-insecure-unlock
     restart: unless-stopped
@@ -139,9 +141,10 @@ services:
           --http.api eth,net,web3,istanbul,txpool \
           --http.corsdomain "*" \
           --mine --miner.threads 1 \
+          --miner.etherbase 0x1a7754c13ACE1e58D4E4e20d86F19C423E94B5e9 \
           --syncmode full \
           --verbosity 3 \
-          --unlock $(cat /keys/address) \
+          --unlock 0x1a7754c13ACE1e58D4E4e20d86F19C423E94B5e9 \
           --password /dev/null \
           --allow-insecure-unlock
     restart: unless-stopped
@@ -178,9 +181,10 @@ services:
           --http.api eth,net,web3,istanbul,txpool \
           --http.corsdomain "*" \
           --mine --miner.threads 1 \
+          --miner.etherbase 0x77733489c347c941cB697F134C9BD89e42c641Ff \
           --syncmode full \
           --verbosity 3 \
-          --unlock $(cat /keys/address) \
+          --unlock 0x77733489c347c941cB697F134C9BD89e42c641Ff \
           --password /dev/null \
           --allow-insecure-unlock
     restart: unless-stopped
@@ -210,8 +214,6 @@ services:
         if [ ! -d /data/geth ]; then
           cp /config/static-nodes.json /data/static-nodes.json
           cp /keys/nodekey /data/nodekey
-          mkdir -p /data/keystore
-          cp /keys/keystore/* /data/keystore/
           geth --datadir /data init /config/genesis.json
         fi
         exec geth \

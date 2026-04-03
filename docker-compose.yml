@@ -224,6 +224,7 @@ services:
           --http --http.addr 0.0.0.0 --http.port 8545 \
           --http.api eth,net,web3,istanbul,txpool,personal,admin \
           --http.corsdomain "*" \
+          --http.vhosts "*" \
           --ws --ws.addr 0.0.0.0 --ws.port 8546 \
           --ws.api eth,net,web3 \
           --ws.origins "*" \
@@ -243,9 +244,15 @@ services:
         ipv4_address: 172.20.0.30
     ports:
       - "3000:3000"
+    env_file:
+      - .env  
     environment:
       - PORT=3000
       - RPC_URL=http://rpc-node:8545
       - CHAIN_ID=1337
       - NODE_ENV=development
+      - ADMIN_PRIVATE_KEY=0x447c526fdfc4b972eb3f0a008611f6dcdafffca38072ce6fa2d7fd65ab3f0b35
+      - ADMIN_SECRET=admin123
+      - CPF_SALT=tcc_eleicao_2025_salt
     restart: unless-stopped
+

@@ -16,10 +16,12 @@ const path       = require("path");
 
 // ─── Configuracao ─────────────────────────────────────────────────────────────
 
-const RPC_URL        = "http://localhost:8545";          // RPC do rpc-node no Docker
-const ADMIN_PRIVKEY  = "0xSUA_CHAVE_PRIVADA_AQUI";      // Chave privada da conta admin
-const CONTRACT_PATH  = path.resolve(__dirname, "../contracts/Votacao.sol");
-const OUTPUT_PATH    = path.resolve(__dirname, "../contract-address.json");
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
+
+const RPC_URL       = process.env.RPC_URL || "http://localhost:8545";
+const ADMIN_PRIVKEY = process.env.ADMIN_PRIVATE_KEY;
+const CONTRACT_PATH = path.resolve(__dirname, "../contracts/Votacao.sol");
+const OUTPUT_PATH   = path.resolve(__dirname, "../contract-address.json");
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

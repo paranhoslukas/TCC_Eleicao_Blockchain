@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoteChain — Votação Eletrônica Auditável</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles/main_styles.css">
+</head>
+<body class="pagina-publica">
+
+<!-- HEADER -->
+<header class="cabecalho">
+  <div class="cabecalho__inner">
+    <div class="logo">
+      <span class="logo__icone">⬡</span>
+      <span class="logo__texto">VoteChain</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#votar">Votar</a>
+      <a href="#resultados">Resultados</a>
+      <a href="#historico">Histórico</a>
+      <a href="admin.html" class="btn-admin">Painel Admin</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero__grade">
+    <div class="hero__texto">
+      <span class="etiqueta-topo">TCC · Unianchieta · GoQuorum IBFT2</span>
+      <h1>Votação eletrônica<br><em>auditável</em> na blockchain</h1>
+      <p class="hero__sub">Cada voto é um contrato inteligente imutável. Transparente, verificável, descentralizado.</p>
+      <div class="hero__status" id="statusRede">
+        <span class="pulso"></span>
+        <span id="textoStatusRede">Conectando à rede...</span>
+      </div>
+    </div>
+    <div class="hero__painel">
+      <div class="card-eleicao" id="cardEleicao">
+        <div class="card-eleicao__loading">
+          <div class="spinner"></div>
+          <p>Carregando eleição ativa...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEÇÃO VOTAR -->
+<section id="votar" class="secao">
+  <div class="secao__inner">
+    <div class="secao__titulo">
+      <span class="etiqueta">Urna Digital</span>
+      <h2>Registrar voto</h2>
+      <p>Digite seu identificador (CPF, Matrícula ou RA). Ele será convertido em um hash anônimo antes de ser enviado à blockchain.</p>
+    </div>
+
+    <div class="votacao-grid">
+      <!-- Formulário de identificação -->
+      <div class="card" id="cardIdentificador">
+        <h3>Sua identificação</h3>
+        <p class="card__sub">Nunca armazenamos seu dado — apenas o hash criptográfico.</p>
+        <div class="campo">
+          <label for="inputIdentificador">CPF / Matrícula / RA</label>
+          <input type="text" id="inputIdentificador" placeholder="Digite seu identificador" autocomplete="off">
+        </div>
+        <button class="btn btn--primario" onclick="verificarEleitor()">Verificar elegibilidade</button>
+        <div class="mensagem" id="msgIdentificador"></div>
+      </div>
+
+      <!-- Candidatos (aparecem após verificação) -->
+      <div class="card card--oculto" id="cardCandidatos">
+        <h3>Escolha seu candidato</h3>
+        <p class="card__sub" id="nomeEleicaoVotacao"></p>
+        <div class="lista-candidatos" id="listaCandidatos"></div>
+        <div class="mensagem" id="msgVoto"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEÇÃO RESULTADOS -->
+<section id="resultados" class="secao secao--escura">
+  <div class="secao__inner">
+    <div class="secao__titulo">
+      <span class="etiqueta">Apuração em tempo real</span>
+      <h2>Resultados</h2>
+      <p id="nomeEleicaoResultados">Carregando eleição ativa...</p>
+    </div>
+
+    <div class="resultados-wrapper">
+      <div class="resultados-candidatos" id="resultadosCandidatos">
+        <div class="resultado-loading">Carregando resultados...</div>
+      </div>
+
+      <div class="telemetria">
+        <h3>Status da rede GoQuorum</h3>
+        <div class="telemetria-grid">
+          <div class="telemetria-item">
+            <span>Altura da blockchain</span>
+            <strong id="alturaBloco">—</strong>
+          </div>
+          <div class="telemetria-item">
+            <span>Nós conectados</span>
+            <strong id="nosConectados">—</strong>
+          </div>
+          <div class="telemetria-item">
+            <span>Consenso</span>
+            <strong id="tipoConsenso">IBFT2</strong>
+          </div>
+          <div class="telemetria-item">
+            <span>Validadores</span>
+            <strong id="numValidadores">4</strong>
+          </div>
+          <div class="telemetria-item">
+            <span>Total de votos</span>
+            <strong id="totalVotos">—</strong>
+          </div>
+          <div class="telemetria-item">
+            <span>Estado</span>
+            <strong id="estadoEleicao">—</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEÇÃO HISTÓRICO -->
+<section id="historico" class="secao">
+  <div class="secao__inner">
+    <div class="secao__titulo">
+      <span class="etiqueta">Auditoria pública</span>
+      <h2>Histórico de eleições</h2>
+      <p>Todos os contratos deployados na blockchain. Cada eleição é imutável e verificável pelo endereço do contrato.</p>
+    </div>
+    <div class="historico-lista" id="historicoLista">
+      <div class="resultado-loading">Carregando histórico...</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="rodape">
+  <div class="rodape__inner">
+    <p>TCC — Votação Eletrônica Auditável com Blockchain Permissiva</p>
+    <p class="rodape__sub">Unianchieta · Lucas Paranhos · Matheus Barbosa · João Gabriel · Orientador: Clayton Valdo</p>
+  </div>
+</footer>
+
+<script src="./scripts/app.js"></script>
+</body>
+</html>

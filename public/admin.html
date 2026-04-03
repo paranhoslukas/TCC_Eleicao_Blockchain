@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoteChain — Painel Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles/main_styles.css">
+</head>
+<body class="pagina-admin">
+
+<!-- LOGIN -->
+<div class="overlay-login" id="overlayLogin">
+  <div class="login-box">
+    <div class="logo">
+      <span class="logo__icone">⬡</span>
+      <span class="logo__texto">VoteChain</span>
+    </div>
+    <h2>Painel Administrativo</h2>
+    <p>Acesso restrito. Digite a senha de administrador.</p>
+    <div class="campo">
+      <label for="senhaAdmin">Senha</label>
+      <input type="password" id="senhaAdmin" placeholder="••••••••" onkeydown="if(event.key==='Enter') fazerLogin()">
+    </div>
+    <button class="btn btn--primario btn--full" onclick="fazerLogin()">Entrar</button>
+    <div class="mensagem" id="msgLogin"></div>
+    <a href="index.html" class="link-voltar">← Voltar para votação pública</a>
+  </div>
+</div>
+
+<!-- PAINEL PRINCIPAL -->
+<div class="admin-wrapper" id="adminWrapper" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <span class="logo__icone">⬡</span>
+      <span class="logo__texto">VoteChain</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-item sidebar-item--ativo" onclick="mostrarAba('nova-eleicao')">
+        <span>＋</span> Nova Eleição
+      </button>
+      <button class="sidebar-item" onclick="mostrarAba('gerenciar')">
+        <span>⚙</span> Gerenciar Ativa
+      </button>
+      <button class="sidebar-item" onclick="mostrarAba('eleitores')">
+        <span>✓</span> Autorizar Eleitores
+      </button>
+      <button class="sidebar-item" onclick="mostrarAba('historico')">
+        <span>◷</span> Histórico
+      </button>
+    </nav>
+    <div class="sidebar-rodape">
+      <div class="rede-status" id="redeStatusSidebar">
+        <span class="pulso"></span>
+        <span id="textoRedeSidebar">Conectando...</span>
+      </div>
+      <button class="btn-sair" onclick="sair()">Sair</button>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO -->
+  <main class="admin-conteudo">
+
+    <!-- ABA: NOVA ELEIÇÃO -->
+    <div class="aba aba--ativa" id="aba-nova-eleicao">
+      <div class="aba__titulo">
+        <h2>Criar nova eleição</h2>
+        <p>Um novo contrato inteligente será deployado na blockchain GoQuorum.</p>
+      </div>
+
+      <div class="admin-grid">
+        <div class="card">
+          <h3>Dados da eleição</h3>
+          <div class="campo">
+            <label>Nome da eleição</label>
+            <input type="text" id="nomeNovaEleicao" placeholder="Ex: Eleição Representante de Sala 2025">
+          </div>
+          <div class="campo">
+            <label>Tipo de identificador dos eleitores</label>
+            <select id="tipoIdentificador">
+              <option value="CPF">CPF</option>
+              <option value="Matricula">Matrícula</option>
+              <option value="RA">RA (Registro Acadêmico)</option>
+            </select>
+          </div>
+          <button class="btn btn--primario" onclick="criarEleicao()" id="btnCriarEleicao">
+            Criar eleição na blockchain
+          </button>
+          <div class="mensagem" id="msgNovaEleicao"></div>
+        </div>
+
+        <div class="card">
+          <h3>Candidatos</h3>
+          <p class="card__sub">Adicione ao menos 2 candidatos antes de iniciar a votação.</p>
+          <div class="campo">
+            <label>Nome do candidato</label>
+            <input type="text" id="nomeCandidato" placeholder="Ex: João Silva" onkeydown="if(event.key==='Enter') adicionarCandidato()">
+          </div>
+          <button class="btn btn--secundario" onclick="adicionarCandidato()">Adicionar candidato</button>
+          <div class="lista-candidatos-admin" id="listaCandidatosAdmin"></div>
+          <div class="mensagem" id="msgCandidato"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA: GERENCIAR ATIVA -->
+    <div class="aba" id="aba-gerenciar">
+      <div class="aba__titulo">
+        <h2>Gerenciar eleição ativa</h2>
+        <p>Controle o ciclo de vida da eleição atual.</p>
+      </div>
+
+      <div class="card card--eleicao-ativa" id="infoEleicaoAtiva">
+        <div class="resultado-loading">Carregando eleição...</div>
+      </div>
+
+      <div class="acoes-eleicao">
+        <div class="card">
+          <h3>Ações</h3>
+          <p class="card__sub">A eleição precisa ter ao menos 2 candidatos para ser iniciada.</p>
+          <div class="botoes-acoes">
+            <button class="btn btn--primario" onclick="iniciarVotacao()" id="btnIniciar">
+              ▶ Iniciar votação
+            </button>
+            <button class="btn btn--perigo" onclick="encerrarVotacao()" id="btnEncerrar">
+              ■ Encerrar votação
+            </button>
+          </div>
+          <div class="mensagem" id="msgAcoes"></div>
+        </div>
+
+        <div class="card">
+          <h3>Resultados em tempo real</h3>
+          <div id="resultadosAdmin"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA: AUTORIZAR ELEITORES -->
+    <div class="aba" id="aba-eleitores">
+      <div class="aba__titulo">
+        <h2>Autorizar eleitores</h2>
+        <p>O identificador é convertido em hash anônimo antes de ser enviado ao contrato. O dado original nunca é armazenado.</p>
+      </div>
+
+      <div class="admin-grid">
+        <div class="card">
+          <h3>Autorização individual</h3>
+          <div class="campo">
+            <label id="labelIdentificadorAdmin">CPF / Matrícula / RA</label>
+            <input type="text" id="inputEleitor" placeholder="Digite o identificador" onkeydown="if(event.key==='Enter') autorizarEleitor()">
+          </div>
+          <button class="btn btn--primario" onclick="autorizarEleitor()">Autorizar eleitor</button>
+          <div class="mensagem" id="msgAutorizar"></div>
+        </div>
+
+        <div class="card">
+          <h3>Autorização em lote</h3>
+          <p class="card__sub">Cole uma lista de identificadores, um por linha.</p>
+          <div class="campo">
+            <label>Lista de identificadores</label>
+            <textarea id="listaEleitores" placeholder="12345678901&#10;98765432100&#10;11122233344" rows="6"></textarea>
+          </div>
+          <button class="btn btn--secundario" onclick="autorizarLote()">Autorizar todos</button>
+          <div class="mensagem" id="msgLote"></div>
+          <div class="progresso-lote" id="progressoLote" style="display:none">
+            <div class="progresso-lote__barra" id="barrLote"></div>
+            <span id="textoLote">0/0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Log de autorizações</h3>
+        <div class="log-autorizacoes" id="logAutorizacoes">
+          <p class="log-vazio">Nenhuma autorização nesta sessão.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA: HISTÓRICO -->
+    <div class="aba" id="aba-historico">
+      <div class="aba__titulo">
+        <h2>Histórico de eleições</h2>
+        <p>Todos os contratos deployados na blockchain desta instância.</p>
+      </div>
+      <div class="historico-lista" id="historicoAdmin">
+        <div class="resultado-loading">Carregando...</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="./scripts/admin.js"></script>
+</body>
+</html>

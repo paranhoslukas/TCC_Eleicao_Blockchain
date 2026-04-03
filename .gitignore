@@ -20,3 +20,4 @@ rpc-node/nodekey
 keystore-admin.json
 .env
 keystore-admin.json
+node_modules/

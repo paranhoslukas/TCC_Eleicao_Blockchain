@@ -1,12 +1,10 @@
 /**
  * admin.js — Painel administrativo VoteChain
- * Conecta nas rotas /api/admin/* do server.js
  */
 
-// ─── Estado ───────────────────────────────────────────────────────────────────
 const estadoAdmin = {
   senhaAtual: null,
-  candidatosLocais: [], // candidatos adicionados antes do deploy
+  candidatosLocais: [],
   eleicaoCriada: false,
 };
 
@@ -45,36 +43,24 @@ async function fazerLogin() {
 
   mostrarMensagem('msgLogin', 'Verificando...', 'info');
 
-  // Testa a senha fazendo uma chamada protegida
   try {
-    const res = await fetch('/api/eleicao/atual', {
-      headers: { 'x-admin-secret': senha },
-    });
-
-    // Se o server respondeu (independente do conteúdo), a senha está correta
-    // (o server.js não protege /api/eleicao/atual, então fazemos uma rota de teste diferente)
-    // Vamos testar com uma rota admin real
-    const testRes = await fetch('/api/admin/eleicao', {
+    const res = await fetch('/api/admin/verificar', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-admin-secret': senha,
       },
-      body: JSON.stringify({ nomeEleicao: '__teste__' }),
+      body: '{}',
     });
 
-    const testDados = await testRes.json();
-
-    if (testRes.status === 401) {
+    if (res.status === 401) {
       mostrarMensagem('msgLogin', 'Senha incorreta.', 'erro');
       return;
     }
 
-    // Senha ok
     estadoAdmin.senhaAtual = senha;
     document.getElementById('overlayLogin').style.display = 'none';
     document.getElementById('adminWrapper').style.display = 'grid';
-
     await inicializarAdmin();
 
   } catch {
@@ -84,9 +70,19 @@ async function fazerLogin() {
 
 function sair() {
   estadoAdmin.senhaAtual = null;
+  estadoAdmin.candidatosLocais = [];
+  estadoAdmin.eleicaoCriada = false;
   document.getElementById('overlayLogin').style.display = 'flex';
   document.getElementById('adminWrapper').style.display = 'none';
   document.getElementById('senhaAdmin').value = '';
+  limparMensagem('msgLogin');
+}
+
+function limparMensagem(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'mensagem';
+  el.textContent = '';
 }
 
 // ─── Navegação ────────────────────────────────────────────────────────────────
@@ -98,16 +94,26 @@ function mostrarAba(nomeAba) {
   const aba = document.getElementById(`aba-${nomeAba}`);
   if (aba) aba.classList.add('aba--ativa');
 
-  // Marca botão ativo
   document.querySelectorAll('.sidebar-item').forEach(btn => {
     if (btn.getAttribute('onclick')?.includes(nomeAba)) {
       btn.classList.add('sidebar-item--ativo');
     }
   });
 
-  // Carrega dados da aba
   if (nomeAba === 'gerenciar') carregarEleicaoAtiva();
   if (nomeAba === 'historico') carregarHistoricoAdmin();
+}
+
+// ─── Modo votação ─────────────────────────────────────────────────────────────
+
+function atualizarModo() {
+  const modo = document.querySelector('input[name="modoVotacao"]:checked')?.value;
+  const desc = document.getElementById('modoDescricao');
+  if (modo === 'aberto') {
+    if (desc) desc.textContent = '⚠️ Modo aberto: qualquer pessoa com acesso pode votar — sem autorização prévia. Ideal para demos ao vivo.';
+  } else {
+    if (desc) desc.textContent = '💡 Modo restrito: somente eleitores autorizados pelo admin podem votar. Ideal para eleições formais.';
+  }
 }
 
 // ─── Status da rede ───────────────────────────────────────────────────────────
@@ -127,6 +133,7 @@ async function carregarRedeAdmin() {
 
 async function criarEleicao() {
   const nome = document.getElementById('nomeNovaEleicao')?.value?.trim();
+  const modoAberto = document.querySelector('input[name="modoVotacao"]:checked')?.value === 'aberto';
 
   if (!nome) {
     mostrarMensagem('msgNovaEleicao', 'Informe o nome da eleição.', 'erro');
@@ -140,7 +147,7 @@ async function criarEleicao() {
   try {
     const dados = await api('/api/admin/eleicao', {
       method: 'POST',
-      body: JSON.stringify({ nomeEleicao: nome }),
+      body: JSON.stringify({ nomeEleicao: nome, modoAberto }),
     });
 
     if (dados.erro) {
@@ -154,14 +161,26 @@ async function criarEleicao() {
 
     if (btn) { btn.disabled = false; btn.textContent = 'Criar eleição na blockchain'; }
 
-    // Adiciona candidatos que estavam na fila local
+    // Envia candidatos pendentes ao contrato
     if (estadoAdmin.candidatosLocais.length > 0) {
-      mostrarMensagem('msgCandidato', 'Adicionando candidatos ao contrato...', 'info');
-      for (const nome of estadoAdmin.candidatosLocais) {
-        await adicionarCandidatoContrato(nome);
-      }
+      mostrarMensagem('msgCandidato', 'Aguardando confirmação do contrato...', 'info');
+      await new Promise(r => setTimeout(r, 3000));
+
+      let sucessos = 0;
+      const lista = [...estadoAdmin.candidatosLocais];
       estadoAdmin.candidatosLocais = [];
-      mostrarMensagem('msgCandidato', '✓ Todos os candidatos adicionados.', 'sucesso');
+
+      for (const nomeCandidato of lista) {
+        const ok = await adicionarCandidatoContrato(nomeCandidato);
+        if (ok) sucessos++;
+      }
+
+      renderizarCandidatosLocais();
+      if (sucessos === lista.length) {
+        mostrarMensagem('msgCandidato', `✓ ${sucessos} candidato(s) adicionado(s) com sucesso.`, 'sucesso');
+      } else {
+        mostrarMensagem('msgCandidato', `⚠️ ${sucessos}/${lista.length} candidatos adicionados. Verifique em Gerenciar Ativa.`, 'info');
+      }
     }
 
   } catch (e) {
@@ -181,13 +200,31 @@ async function adicionarCandidato() {
     return;
   }
 
-  if (estadoAdmin.eleicaoCriada) {
-    await adicionarCandidatoContrato(nome);
-  } else {
-    // Guarda localmente até o deploy
-    estadoAdmin.candidatosLocais.push(nome);
-    renderizarCandidatosLocais();
-    mostrarMensagem('msgCandidato', `"${nome}" será adicionado ao criar a eleição.`, 'info');
+  // Verifica duplicata
+  if (estadoAdmin.candidatosLocais.includes(nome)) {
+    mostrarMensagem('msgCandidato', `"${nome}" já está na lista.`, 'erro');
+    if (input) input.value = '';
+    return;
+  }
+
+  try {
+    const eleicao = await fetch('/api/eleicao/atual').then(r => r.json());
+
+    if (eleicao.erro || !eleicao.endereco) {
+      // Sem eleição ativa — guarda localmente
+      estadoAdmin.candidatosLocais.push(nome);
+      renderizarCandidatosLocais();
+      mostrarMensagem('msgCandidato', `"${nome}" será adicionado ao criar a eleição.`, 'info');
+    } else {
+      // Com eleição ativa — envia direto
+      mostrarMensagem('msgCandidato', `Adicionando "${nome}"...`, 'info');
+      const ok = await adicionarCandidatoContrato(nome);
+      if (ok) {
+        mostrarMensagem('msgCandidato', `✓ "${nome}" adicionado com sucesso.`, 'sucesso');
+      }
+    }
+  } catch {
+    mostrarMensagem('msgCandidato', 'Erro ao verificar eleição ativa.', 'erro');
   }
 
   if (input) input.value = '';
@@ -204,8 +241,6 @@ async function adicionarCandidatoContrato(nome) {
       mostrarMensagem('msgCandidato', dados.erro, 'erro');
       return false;
     }
-
-    renderizarCandidatosLocais();
     return true;
   } catch {
     return false;
@@ -249,6 +284,7 @@ async function carregarEleicaoAtiva() {
           <div>
             <div style="font-family:var(--fonte-display);font-size:1.3rem;font-weight:800;margin-bottom:6px;">${dados.nome}</div>
             <span class="card-eleicao__estado estado--${dados.estado}">${traduzirEstado(dados.estado)}</span>
+            ${dados.modoAberto !== undefined ? `<span style="margin-left:8px;font-family:var(--fonte-mono);font-size:0.72rem;color:var(--cinza-400);">${dados.modoAberto ? '🌐 Aberta' : '🔒 Restrita'}</span>` : ''}
           </div>
           <div style="font-family:var(--fonte-mono);font-size:0.78rem;color:var(--cinza-400);text-align:right;">
             ${dados.totalVotos} voto(s)<br>
@@ -259,7 +295,6 @@ async function carregarEleicaoAtiva() {
       `;
     }
 
-    // Resultados
     if (resultados) {
       if (dados.candidatos.length === 0) {
         resultados.innerHTML = '<p style="color:var(--cinza-400);font-family:var(--fonte-mono);font-size:0.82rem;">Nenhum candidato ainda.</p>';
@@ -282,10 +317,9 @@ async function carregarEleicaoAtiva() {
       }
     }
 
-    // Habilita/desabilita botões por estado
-    const btnIniciar = document.getElementById('btnIniciar');
+    const btnIniciar  = document.getElementById('btnIniciar');
     const btnEncerrar = document.getElementById('btnEncerrar');
-    if (btnIniciar) btnIniciar.disabled = dados.estado !== 'Aberta';
+    if (btnIniciar)  btnIniciar.disabled  = dados.estado !== 'Aberta';
     if (btnEncerrar) btnEncerrar.disabled = dados.estado !== 'EmVotacao';
 
   } catch {
@@ -337,7 +371,6 @@ function adicionarLog(identificador, ok, mensagem) {
     </div>
     <span style="margin-left:auto;color:var(--cinza-400);font-size:0.7rem;">${new Date().toLocaleTimeString('pt-BR')}</span>
   `;
-
   container.insertBefore(item, container.firstChild);
 }
 
@@ -383,16 +416,14 @@ async function autorizarLote() {
   }
 
   const lista = texto.split('\n').map(l => l.trim()).filter(Boolean);
-
   if (lista.length === 0) {
     mostrarMensagem('msgLote', 'Nenhum identificador encontrado.', 'erro');
     return;
   }
 
   const progressoEl = document.getElementById('progressoLote');
-  const barraEl = document.getElementById('barrLote');
-  const textoEl = document.getElementById('textoLote');
-
+  const barraEl     = document.getElementById('barrLote');
+  const textoEl     = document.getElementById('textoLote');
   if (progressoEl) progressoEl.style.display = 'flex';
 
   let ok = 0;
@@ -407,7 +438,6 @@ async function autorizarLote() {
         method: 'POST',
         body: JSON.stringify({ cpf: identificador }),
       });
-
       if (dados.erro) {
         adicionarLog(identificador, false, dados.erro);
       } else {
@@ -418,7 +448,6 @@ async function autorizarLote() {
       adicionarLog(identificador, false, 'Erro de conexão');
     }
 
-    // Pequena pausa para não sobrecarregar
     await new Promise(r => setTimeout(r, 300));
   }
 
@@ -436,7 +465,7 @@ async function carregarHistoricoAdmin() {
 
   try {
     const dados = await fetch('/api/eleicoes').then(r => r.json());
-    const lista = dados.eleicoes || [];
+    const lista  = dados.eleicoes || [];
 
     if (lista.length === 0) {
       container.innerHTML = '<p style="color:var(--cinza-400);font-family:var(--fonte-mono);font-size:0.88rem;">Nenhuma eleição criada ainda.</p>';
@@ -448,6 +477,7 @@ async function carregarHistoricoAdmin() {
         <div>
           <div class="historico-item__nome">${e.nomeEleicao}</div>
           <div class="historico-item__meta">
+            ${e.modoAberto ? '🌐 Aberta' : '🔒 Restrita'} ·
             Criada em ${new Date(e.deployedAt).toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' })}
           </div>
           <div class="historico-item__endereco">${e.endereco}</div>
@@ -473,7 +503,6 @@ async function inicializarAdmin() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Enter no campo de senha
   document.getElementById('senhaAdmin')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') fazerLogin();
   });

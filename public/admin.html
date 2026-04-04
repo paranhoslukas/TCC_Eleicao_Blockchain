@@ -86,6 +86,30 @@
               <option value="RA">RA (Registro Acadêmico)</option>
             </select>
           </div>
+          <div class="campo">
+            <label>Modo de votação</label>
+            <div class="toggle-modo">
+              <label class="toggle-opcao" id="labelRestrito">
+                <input type="radio" name="modoVotacao" value="restrito" checked onchange="atualizarModo()">
+                <span class="toggle-icone">🔒</span>
+                <div>
+                  <strong>Restrita</strong>
+                  <small>Somente eleitores autorizados pelo admin</small>
+                </div>
+              </label>
+              <label class="toggle-opcao" id="labelAberto">
+                <input type="radio" name="modoVotacao" value="aberto" onchange="atualizarModo()">
+                <span class="toggle-icone">🌐</span>
+                <div>
+                  <strong>Aberta</strong>
+                  <small>Qualquer pessoa com acesso pode votar</small>
+                </div>
+              </label>
+            </div>
+            <p class="modo-descricao" id="modoDescricao" style="font-size:0.78rem;color:var(--cinza-400);margin-top:8px;">
+              💡 Use modo restrito para eleições formais. Use modo aberto para demos ao vivo.
+            </p>
+          </div>
           <button class="btn btn--primario" onclick="criarEleicao()" id="btnCriarEleicao">
             Criar eleição na blockchain
           </button>

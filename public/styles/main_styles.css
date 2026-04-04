@@ -944,6 +944,53 @@ p { color: var(--cinza-200); }
 /* ─── Resultados admin ───────────────────────────────── */
 #resultadosAdmin .resultado-item { margin-bottom: 16px; }
 
+/* ─── Toggle modo votação ────────────────────────────── */
+.toggle-modo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.toggle-opcao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--cinza-800);
+  border: 2px solid var(--cinza-700);
+  border-radius: var(--raio);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-opcao:has(input:checked) {
+  border-color: var(--verde);
+  background: rgba(0,229,160,0.06);
+}
+
+.toggle-opcao input[type="radio"] {
+  display: none;
+}
+
+.toggle-icone {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.toggle-opcao strong {
+  display: block;
+  color: var(--branco);
+  font-size: 0.92rem;
+  margin-bottom: 2px;
+}
+
+.toggle-opcao small {
+  color: var(--cinza-400);
+  font-size: 0.76rem;
+  font-family: var(--fonte-mono);
+}
+
 /* ═══════════════════════════════════════════════════════
    RESPONSIVO
    ═══════════════════════════════════════════════════════ */

@@ -1,5 +1,6 @@
 /**
  * admin.js — Painel administrativo VoteChain
+ * CORRIGIDO: candidatos adicionados após deploy agora aparecem corretamente
  */
 
 const estadoAdmin = {
@@ -129,6 +130,19 @@ async function carregarRedeAdmin() {
   }
 }
 
+// ─── Aguardar contrato estar disponível (retry) ───────────────────────────────
+
+async function aguardarContrato(endereco, tentativas = 10) {
+  for (let i = 0; i < tentativas; i++) {
+    await new Promise(r => setTimeout(r, 1500));
+    try {
+      const res = await fetch(`/api/eleicao/${endereco}`).then(r => r.json());
+      if (res.nome) return true; // contrato respondendo
+    } catch { /* aguarda próxima tentativa */ }
+  }
+  return false;
+}
+
 // ─── Criar eleição ────────────────────────────────────────────────────────────
 
 async function criarEleicao() {
@@ -163,8 +177,15 @@ async function criarEleicao() {
 
     // Envia candidatos pendentes ao contrato
     if (estadoAdmin.candidatosLocais.length > 0) {
-      mostrarMensagem('msgCandidato', 'Aguardando confirmação do contrato...', 'info');
-      await new Promise(r => setTimeout(r, 3000));
+      mostrarMensagem('msgCandidato', 'Aguardando contrato ficar disponível...', 'info');
+
+      // CORRIGIDO: aguarda o contrato responder com retry em vez de timeout fixo
+      const contratoOk = await aguardarContrato(dados.endereco);
+
+      if (!contratoOk) {
+        mostrarMensagem('msgCandidato', '⚠️ Contrato demorou para responder. Tente adicionar os candidatos manualmente.', 'erro');
+        return;
+      }
 
       let sucessos = 0;
       const lista = [...estadoAdmin.candidatosLocais];
@@ -175,7 +196,9 @@ async function criarEleicao() {
         if (ok) sucessos++;
       }
 
-      renderizarCandidatosLocais();
+      // CORRIGIDO: após enviar candidatos pendentes, busca a lista real do contrato
+      await atualizarListaCandidatosDoContrato();
+
       if (sucessos === lista.length) {
         mostrarMensagem('msgCandidato', `✓ ${sucessos} candidato(s) adicionado(s) com sucesso.`, 'sucesso');
       } else {
@@ -200,7 +223,7 @@ async function adicionarCandidato() {
     return;
   }
 
-  // Verifica duplicata
+  // Verifica duplicata na lista local
   if (estadoAdmin.candidatosLocais.includes(nome)) {
     mostrarMensagem('msgCandidato', `"${nome}" já está na lista.`, 'erro');
     if (input) input.value = '';
@@ -216,11 +239,13 @@ async function adicionarCandidato() {
       renderizarCandidatosLocais();
       mostrarMensagem('msgCandidato', `"${nome}" será adicionado ao criar a eleição.`, 'info');
     } else {
-      // Com eleição ativa — envia direto
+      // Com eleição ativa — envia direto ao contrato
       mostrarMensagem('msgCandidato', `Adicionando "${nome}"...`, 'info');
       const ok = await adicionarCandidatoContrato(nome);
       if (ok) {
         mostrarMensagem('msgCandidato', `✓ "${nome}" adicionado com sucesso.`, 'sucesso');
+        // CORRIGIDO: busca a lista real do contrato após adicionar
+        await atualizarListaCandidatosDoContrato();
       }
     }
   } catch {
@@ -244,6 +269,31 @@ async function adicionarCandidatoContrato(nome) {
     return true;
   } catch {
     return false;
+  }
+}
+
+// NOVO: busca candidatos reais do contrato e renderiza na lista do admin
+async function atualizarListaCandidatosDoContrato() {
+  try {
+    const eleicao = await fetch('/api/eleicao/atual').then(r => r.json());
+    const container = document.getElementById('listaCandidatosAdmin');
+    if (!container || eleicao.erro) return;
+
+    const candidatos = eleicao.candidatos || [];
+
+    if (candidatos.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    container.innerHTML = candidatos.map((c, i) => `
+      <div class="candidato-admin-item">
+        <span>#${i + 1}</span> ${c.nome}
+        <small style="color:var(--verde);font-family:var(--fonte-mono);font-size:0.7rem;margin-left:auto;">on-chain ✓</small>
+      </div>
+    `).join('');
+  } catch {
+    // silencioso — não quebra o fluxo
   }
 }
 

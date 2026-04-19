@@ -375,7 +375,7 @@ async function carregarRegistrosVotos(endereco, dados, candidatosMap) {
                       display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;">
             <span style="font-family:var(--fonte-mono);font-size:0.72rem;color:var(--cinza-400);">#${i + 1}</span>
             <span style="font-family:var(--fonte-mono);font-size:0.72rem;color:var(--cinza-200);word-break:break-all;">
-              ${v.eleitorHash.slice(0, 18)}...${v.eleitorHash.slice(-6)}
+              ${v.eleitorHash.slice(0, 18)}...${v.eleitorHash}
             </span>
             <span style="font-family:var(--fonte-display);font-weight:700;color:var(--verde);white-space:nowrap;">
               → ${candidatosMap[v.candidatoId] || `#${v.candidatoId}`}

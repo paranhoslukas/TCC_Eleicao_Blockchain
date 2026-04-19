@@ -127,7 +127,7 @@ aplicacao.post('/api/votar', async (req, res) => {
     if (jaVotou) return res.status(400).json({ erro: 'Este eleitor ja votou.' });
     const tx = await contrato.votar(eleitorHash, candidatoId);
     await tx.wait();
-    res.status(201).json({ mensagem: 'Voto registrado com sucesso na blockchain.', txHash: tx.hash, eleitorId: eleitorHash.slice(0, 10) + '...' });
+    res.status(201).json({ mensagem: 'Voto registrado com sucesso na blockchain.', txHash: tx.hash, eleitorId: eleitorHash });
   } catch (erro) {
     if (erro.message.includes('Eleitor nao autorizado')) return res.status(403).json({ erro: 'Eleitor nao autorizado para esta eleicao.' });
     if (erro.message.includes('Operacao invalida')) return res.status(400).json({ erro: 'A votacao nao esta aberta no momento.' });
@@ -242,6 +242,44 @@ aplicacao.post('/api/admin/encerrar', autenticarAdmin, async (req, res) => {
     await tx.wait();
     res.json({ mensagem: 'Votacao encerrada com sucesso.', txHash: tx.hash });
   } catch (erro) { res.status(500).json({ erro: erro.message }); }
+});
+
+aplicacao.get('/api/votar/elegivel/:cpf', async (req, res) => {
+  try {
+    const atual = eleicaoAtual();
+    if (!atual) return res.json({ elegivel: false, motivo: 'Nenhuma eleição ativa.' });
+
+    const contrato = contratoLeitura(atual.endereco);
+    const [estadoNum, modoAberto] = await Promise.all([
+      contrato.estado(),
+      contrato.modoAberto(),
+    ]);
+
+    const estados = ['Aberta', 'EmVotacao', 'Encerrada'];
+    const estadoAtual = estados[Number(estadoNum)];
+
+    if (estadoAtual !== 'EmVotacao') {
+      return res.json({ elegivel: false, motivo: `Votação não está aberta (estado: ${estadoAtual}).` });
+    }
+
+    const eleitorHash = hashCPF(req.params.cpf);
+    const jaVotou = await contrato.jaVotou(eleitorHash);
+
+    if (jaVotou) {
+      return res.json({ elegivel: false, motivo: 'Este identificador já votou.' });
+    }
+
+    if (!modoAberto) {
+      const autorizado = await contrato.eleitorAutorizado(eleitorHash);
+      if (!autorizado) {
+        return res.json({ elegivel: false, motivo: 'Identificador não autorizado para esta eleição.' });
+      }
+    }
+
+    res.json({ elegivel: true });
+  } catch (erro) {
+    res.status(500).json({ erro: erro.message });
+  }
 });
 
 // ─── Fallback ─────────────────────────────────────────────────────────────────

@@ -251,8 +251,5 @@ services:
       - RPC_URL=http://rpc-node:8545
       - CHAIN_ID=1337
       - NODE_ENV=development
-      - ADMIN_PRIVATE_KEY=0x447c526fdfc4b972eb3f0a008611f6dcdafffca38072ce6fa2d7fd65ab3f0b35
-      - ADMIN_SECRET=admin123
-      - CPF_SALT=tcc_eleicao_2025_salt
     restart: unless-stopped
 

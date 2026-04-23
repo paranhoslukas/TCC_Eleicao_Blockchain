@@ -1,8 +1,3 @@
-/**
- * server.js
- * Backend do sistema de votacao eletronica auditavel com GoQuorum.
- */
-
 require('dotenv').config();
 
 const express    = require('express');

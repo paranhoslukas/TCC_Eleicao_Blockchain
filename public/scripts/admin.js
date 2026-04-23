@@ -1,8 +1,3 @@
-/**
- * admin.js — Painel administrativo VoteChain
- * CORRIGIDO: candidatos adicionados após deploy agora aparecem corretamente
- */
-
 const estadoAdmin = {
   senhaAtual: null,
   candidatosLocais: [],

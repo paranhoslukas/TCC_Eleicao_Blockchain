@@ -1,7 +1,3 @@
-/**
- * app.js — Frontend público VoteChain
- */
-
 const estado = {
   eleicaoAtual: null,
   identificadorAtual: null,

@@ -1,4 +1,4 @@
-# VoteChain — Votação Eletrônica Auditável com Blockchain Permissiva
+# AuditVote — Votação Eletrônica Auditável com Blockchain Permissiva
 
 > TCC — Unianchieta · Jundiaí SP  
 > Autores: Lucas Paranhos · Matheus Barbosa · João Gabriel  
@@ -6,7 +6,7 @@
 
 Sistema de votação eletrônica baseado em blockchain permissiva (GoQuorum/IBFT2), com contratos inteligentes em Solidity, backend Node.js e frontend web auditável publicamente.
 
-**Demo ao vivo:** [paranhoslukas.ddns.net:2001](http://paranhoslukas.ddns.net:2001)  
+**Demo ao vivo:** [auditvote.ddns.net:2001](http://auditvote.ddns.net:2001)  
 **Repo do nó externo (auditoria):** [github.com/paranhoslukas/tcc-eleicao-node](https://github.com/paranhoslukas/tcc-eleicao-node)
 
 ---

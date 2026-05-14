@@ -20,7 +20,9 @@ Sistema de votação eletrônica baseado em blockchain permissiva (GoQuorum/IBFT
 | Backend | Node.js 20 · Express 5 · ethers.js 6 |
 | Frontend | HTML · CSS · JavaScript puro |
 | Infraestrutura | Docker Compose · 7 containers |
-| Deploy | Oracle Cloud VM Ubuntu 22.04 / Rede doméstica com DDNS |
+| Deploy | Rede doméstica com DDNS |
+| Docker publico para participar da rede ``` https://github.com/paranhoslukas/tcc-eleicao-blockchain-no``` |
+
 
 ---
 

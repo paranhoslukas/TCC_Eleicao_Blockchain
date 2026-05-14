@@ -95,7 +95,23 @@ aplicacao.get('/api/eleicao/atual', async (_req, res) => {
       contrato.nomeEleicao(), contrato.estado(), contrato.apurar(), contrato.totalVotos(),
     ]);
     const estados = ['Aberta', 'EmVotacao', 'Encerrada'];
-    res.json({ endereco: atual.endereco, nome, estado: estados[Number(estadoNum)], candidatos: candidatos.map(c => ({ id: Number(c.id), nome: c.nome, votos: Number(c.votos) })), totalVotos: Number(totalVotos), deployedAt: atual.deployedAt });
+    const estadoStr = estados[Number(estadoNum)];
+
+    let candidatosMapeados = candidatos.map(c => ({ id: Number(c.id), nome: c.nome, votos: Number(c.votos) }));
+    if (atual.modoSigiloso && estadoStr !== 'Encerrada') {
+      candidatosMapeados = candidatosMapeados.map(c => ({ ...c, votos: 0 }));
+    }
+
+    res.json({ 
+      endereco: atual.endereco, 
+      nome, 
+      estado: estadoStr, 
+      candidatos: candidatosMapeados, 
+      totalVotos: Number(totalVotos), 
+      deployedAt: atual.deployedAt,
+      modoAberto: atual.modoAberto === true,
+      sigilosa: atual.modoSigiloso === true
+    });
   } catch (erro) { res.status(500).json({ erro: erro.message }); }
 });
 
@@ -106,7 +122,24 @@ aplicacao.get('/api/eleicao/:endereco', async (req, res) => {
       contrato.nomeEleicao(), contrato.estado(), contrato.apurar(), contrato.totalVotos(),
     ]);
     const estados = ['Aberta', 'EmVotacao', 'Encerrada'];
-    res.json({ endereco: req.params.endereco, nome, estado: estados[Number(estadoNum)], candidatos: candidatos.map(c => ({ id: Number(c.id), nome: c.nome, votos: Number(c.votos) })), totalVotos: Number(totalVotos) });
+    const estadoStr = estados[Number(estadoNum)];
+    const historico = carregarHistorico();
+    const eleicao = historico.find(e => e.endereco.toLowerCase() === req.params.endereco.toLowerCase());
+
+    let candidatosMapeados = candidatos.map(c => ({ id: Number(c.id), nome: c.nome, votos: Number(c.votos) }));
+    if (eleicao && eleicao.modoSigiloso && estadoStr !== 'Encerrada') {
+      candidatosMapeados = candidatosMapeados.map(c => ({ ...c, votos: 0 }));
+    }
+
+    res.json({ 
+      endereco: req.params.endereco, 
+      nome, 
+      estado: estadoStr, 
+      candidatos: candidatosMapeados, 
+      totalVotos: Number(totalVotos),
+      modoAberto: eleicao ? eleicao.modoAberto === true : undefined,
+      sigilosa: eleicao ? eleicao.modoSigiloso === true : false
+    });
   } catch (erro) { res.status(500).json({ erro: erro.message }); }
 });
 
@@ -144,6 +177,17 @@ aplicacao.get('/api/votar/status/:cpf', async (req, res) => {
 aplicacao.get('/api/eleicao/:endereco/votos', async (req, res) => {
   try {
     const contrato   = contratoLeitura(req.params.endereco);
+    const estadoNum = await contrato.estado();
+    const estados = ['Aberta', 'EmVotacao', 'Encerrada'];
+    const estadoStr = estados[Number(estadoNum)];
+
+    const historico = carregarHistorico();
+    const eleicao = historico.find(e => e.endereco.toLowerCase() === req.params.endereco.toLowerCase());
+
+    if (eleicao && eleicao.modoSigiloso && estadoStr !== 'Encerrada') {
+      return res.json({ votos: [], sigilosa: true });
+    }
+
     const totalVotos = Number(await contrato.totalVotos());
     const votos      = [];
 
@@ -168,7 +212,7 @@ aplicacao.post('/api/admin/verificar', autenticarAdmin, (_req, res) => {
 
 aplicacao.post('/api/admin/eleicao', autenticarAdmin, async (req, res) => {
   try {
-    const { nomeEleicao, modoAberto } = req.body;
+    const { nomeEleicao, modoAberto, modoSigiloso } = req.body;
     if (!nomeEleicao) return res.status(400).json({ erro: 'nomeEleicao e obrigatorio.' });
     if (!fs.existsSync(ABI_PATH) || !fs.existsSync(BYTECODE_PATH)) return res.status(500).json({ erro: 'Contrato nao compilado. Execute node scripts/deploy.js primeiro.' });
     const abi = JSON.parse(fs.readFileSync(ABI_PATH, 'utf8'));
@@ -178,7 +222,7 @@ aplicacao.post('/api/admin/eleicao', autenticarAdmin, async (req, res) => {
     await contrato.waitForDeployment();
     const endereco = await contrato.getAddress();
     const historico = carregarHistorico();
-    historico.push({ nomeEleicao, endereco, modoAberto: modoAberto === true, deployedAt: new Date().toISOString() });
+    historico.push({ nomeEleicao, endereco, modoAberto: modoAberto === true, modoSigiloso: modoSigiloso === true, deployedAt: new Date().toISOString() });
     fs.writeFileSync(ADDRESS_PATH, JSON.stringify(historico, null, 2));
     res.status(201).json({ mensagem: 'Eleicao criada com sucesso.', endereco, nomeEleicao });
   } catch (erro) { res.status(500).json({ erro: erro.message }); }

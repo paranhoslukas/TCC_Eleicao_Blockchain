@@ -104,12 +104,18 @@ function mostrarAba(nomeAba) {
 
 function atualizarModo() {
   const modo = document.querySelector('input[name="modoVotacao"]:checked')?.value;
+  const sigiloso = document.getElementById('modoSigiloso')?.checked;
   const desc = document.getElementById('modoDescricao');
+  let texto = '';
   if (modo === 'aberto') {
-    if (desc) desc.textContent = '⚠️ Modo aberto: qualquer pessoa com acesso pode votar — sem autorização prévia. Ideal para demos ao vivo.';
+    texto = '⚠️ Modo aberto: qualquer pessoa com acesso pode votar — sem autorização prévia. Ideal para demos ao vivo.';
   } else {
-    if (desc) desc.textContent = '💡 Modo restrito: somente eleitores autorizados pelo admin podem votar. Ideal para eleições formais.';
+    texto = '💡 Modo restrito: somente eleitores autorizados pelo admin podem votar. Ideal para eleições formais.';
   }
+  if (sigiloso) {
+    texto += ' 🕶️ + Sigilosa: Resultados bloqueados até o encerramento.';
+  }
+  if (desc) desc.textContent = texto;
 }
 
 // ─── Status da rede ───────────────────────────────────────────────────────────
@@ -143,6 +149,7 @@ async function aguardarContrato(endereco, tentativas = 10) {
 async function criarEleicao() {
   const nome = document.getElementById('nomeNovaEleicao')?.value?.trim();
   const modoAberto = document.querySelector('input[name="modoVotacao"]:checked')?.value === 'aberto';
+  const modoSigiloso = document.getElementById('modoSigiloso')?.checked;
 
   if (!nome) {
     mostrarMensagem('msgNovaEleicao', 'Informe o nome da eleição.', 'erro');
@@ -156,7 +163,7 @@ async function criarEleicao() {
   try {
     const dados = await api('/api/admin/eleicao', {
       method: 'POST',
-      body: JSON.stringify({ nomeEleicao: nome, modoAberto }),
+      body: JSON.stringify({ nomeEleicao: nome, modoAberto, modoSigiloso }),
     });
 
     if (dados.erro) {
@@ -330,6 +337,7 @@ async function carregarEleicaoAtiva() {
             <div style="font-family:var(--fonte-display);font-size:1.3rem;font-weight:800;margin-bottom:6px;">${dados.nome}</div>
             <span class="card-eleicao__estado estado--${dados.estado}">${traduzirEstado(dados.estado)}</span>
             ${dados.modoAberto !== undefined ? `<span style="margin-left:8px;font-family:var(--fonte-mono);font-size:0.72rem;color:var(--cinza-400);">${dados.modoAberto ? '🌐 Aberta' : '🔒 Restrita'}</span>` : ''}
+            ${dados.sigilosa ? `<span style="margin-left:8px;font-family:var(--fonte-mono);font-size:0.72rem;color:var(--accent-green);">🕶️ Sigilosa</span>` : ''}
           </div>
           <div style="font-family:var(--fonte-mono);font-size:0.78rem;color:var(--cinza-400);text-align:right;">
             ${dados.totalVotos} voto(s)<br>
@@ -343,6 +351,8 @@ async function carregarEleicaoAtiva() {
     if (resultados) {
       if (dados.candidatos.length === 0) {
         resultados.innerHTML = '<p style="color:var(--cinza-400);font-family:var(--fonte-mono);font-size:0.82rem;">Nenhum candidato ainda.</p>';
+      } else if (dados.sigilosa && dados.estado !== 'Encerrada') {
+        resultados.innerHTML = '<p style="color:var(--cinza-400);font-family:var(--fonte-mono);font-size:0.82rem;">Votação sigilosa. Os resultados parciais estão bloqueados até o encerramento da eleição.</p>';
       } else {
         const total = dados.totalVotos || 0;
         resultados.innerHTML = dados.candidatos.map(c => {
@@ -522,7 +532,7 @@ async function carregarHistoricoAdmin() {
         <div>
           <div class="historico-item__nome">${e.nomeEleicao}</div>
           <div class="historico-item__meta">
-            ${e.modoAberto ? '🌐 Aberta' : '🔒 Restrita'} ·
+            ${e.modoAberto ? '🌐 Aberta' : '🔒 Restrita'} ${e.modoSigiloso ? '· <span style="color:var(--accent-green);">🕶️ Sigilosa</span>' : ''} ·
             Criada em ${new Date(e.deployedAt).toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' })}
           </div>
           <div class="historico-item__endereco">${e.endereco}</div>

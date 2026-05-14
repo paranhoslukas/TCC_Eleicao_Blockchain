@@ -59,11 +59,15 @@ async function carregarEleicaoAtual() {
       const modoBadge = dados.modoAberto
         ? '<span style="font-family:var(--fonte-mono);font-size:0.7rem;color:var(--cinza-400);">🌐 Votação aberta</span>'
         : '<span style="font-family:var(--fonte-mono);font-size:0.7rem;color:var(--cinza-400);">🔒 Votação restrita</span>';
+      const sigiloBadge = dados.sigilosa
+        ? '<span style="font-family:var(--fonte-mono);font-size:0.7rem;color:var(--accent-green);margin-left:8px;">🕶️ Sigilosa</span>'
+        : '';
 
       cardEl.innerHTML = `
         <div class="card-eleicao__nome">${dados.nome}</div>
         <span class="card-eleicao__estado estado--${dados.estado}">${traduzirEstado(dados.estado)}</span>
         ${modoBadge}
+        ${sigiloBadge}
         <p style="font-family:var(--fonte-mono);font-size:0.82rem;color:var(--cinza-400);margin:8px 0;">
           ${dados.totalVotos} voto(s) registrado(s)
         </p>
@@ -97,6 +101,11 @@ function renderizarResultados(dados) {
 
   if (!dados.candidatos || dados.candidatos.length === 0) {
     container.innerHTML = '<p style="color:var(--cinza-400);font-family:var(--fonte-mono);font-size:0.88rem;">Nenhum candidato registrado.</p>';
+    return;
+  }
+
+  if (dados.sigilosa && dados.estado !== 'Encerrada') {
+    container.innerHTML = '<p style="color:var(--cinza-400);font-family:var(--fonte-mono);font-size:0.88rem;">Votação sigilosa. Resultados parciais ocultos até o encerramento.</p>';
     return;
   }
 
@@ -359,6 +368,10 @@ async function verDetalhesEleicao(endereco) {
 async function carregarRegistrosVotos(endereco, dados, candidatosMap) {
   try {
     const registros = await api(`/api/eleicao/${endereco}/votos`);
+
+    if (registros.sigilosa) {
+      return '<p style="color:var(--cinza-400);font-family:var(--fonte-mono);font-size:0.82rem;">Registros on-chain ocultados (Eleição Sigilosa). Será revelado após o encerramento.</p>';
+    }
 
     if (!registros.votos || registros.votos.length === 0) {
       return '<p style="color:var(--cinza-400);font-family:var(--fonte-mono);font-size:0.82rem;">Nenhum voto registrado.</p>';

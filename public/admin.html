@@ -106,6 +106,16 @@
                 </div>
               </label>
             </div>
+
+            <label>Visibilidade dos resultados</label>
+            <label class="toggle-opcao" id="labelOculta">
+              <input type="checkbox" id="modoSigiloso" onchange="atualizarModo()">
+              <span class="toggle-icone">🕶️</span>
+              <div>
+                <strong>Sigilosa (Oculta)</strong>
+                <small>Resultados visíveis somente após encerramento</small>
+              </div>
+            </label>
             <p class="modo-descricao" id="modoDescricao" style="font-size:0.78rem;color:var(--cinza-400);margin-top:8px;">
               💡 Use modo restrito para eleições formais. Use modo aberto para demos ao vivo.
             </p>

@@ -1338,7 +1338,8 @@ p { color: var(--text-secondary); font-weight: 400; }
   box-shadow: 0 0 16px rgba(124, 58, 237, 0.15);
 }
 
-.toggle-opcao input[type="radio"] {
+.toggle-opcao input[type="radio"],
+.toggle-opcao input[type="checkbox"] {
   display: none;
 }
 

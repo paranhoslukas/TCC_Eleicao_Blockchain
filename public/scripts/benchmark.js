@@ -23,8 +23,8 @@ const path       = require('path');
 
 const RPC_URL         = process.env.RPC_URL          || 'http://localhost:8545';
 const ADMIN_KEY       = process.env.ADMIN_PRIVATE_KEY || '0x447c526fdfc4b972eb3f0a008611f6dcdafffca38072ce6fa2d7fd65ab3f0b35';
-const ABI_PATH        = path.resolve(__dirname, '../contracts/Votacao.abi.json');
-const BYTECODE_PATH   = path.resolve(__dirname, '../contracts/Votacao.bytecode.json');
+const ABI_PATH      = path.resolve(__dirname, '../../contracts/Votacao.abi.json');
+const BYTECODE_PATH = path.resolve(__dirname, '../../contracts/Votacao.bytecode.json');
 const RESULTADO_PATH  = path.resolve(__dirname, '../benchmark-resultado.json');
 const CPF_SALT        = process.env.CPF_SALT || 'tcc_eleicao_2025_salt';
 
